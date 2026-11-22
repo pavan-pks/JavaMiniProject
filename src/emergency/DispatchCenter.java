@@ -86,6 +86,19 @@ public class DispatchCenter implements Dispatchable {
         }
     }
 
+    // Show current fleet and waiting queue
+    public synchronized void showStatus() {
+        System.out.println("\nAmbulances free: " + freeICU + " ICU, " + freeBasic + " Basic");
+        if (queue.isEmpty()) {
+            System.out.println("Queue is empty. No calls waiting.");
+        } else {
+            System.out.println("Calls waiting in queue (" + queue.size() + "):");
+            for (EmergencyCall c : queue) {
+                System.out.println("  - " + c.id + " at " + c.location + " (" + c.severity + ")");
+            }
+        }
+    }
+
     // Waits until all ambulances return and queue is empty
     public void waitForIdle() {
         while (freeICU < totalICU || freeBasic < totalBasic || !queue.isEmpty()) {

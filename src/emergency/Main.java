@@ -13,36 +13,51 @@ public class Main {
         System.out.println("=========================================");
 
         while (true) {
-            System.out.println("\n1. Enter Emergency Call");
-            System.out.println("2. Run Demo");
-            System.out.println("3. Exit");
+            System.out.println("\n1. Enter Call(s) (Single or Multiple)");
+            System.out.println("2. View Queue & Ambulance Status");
+            System.out.println("3. Run Demo");
+            System.out.println("4. Exit");
             System.out.print("Choice: ");
 
             String choice = sc.nextLine().trim();
 
             if (choice.equals("1")) {
-                System.out.print("Location: ");
-                String loc = sc.nextLine().trim();
-                if (loc.isEmpty()) loc = "Main Street";
+                // Loop to allow adding multiple calls in a row
+                while (true) {
+                    System.out.print("\nLocation: ");
+                    String loc = sc.nextLine().trim();
+                    if (loc.isEmpty()) loc = "Main Street";
 
-                System.out.print("Severity (Critical / Low, press Enter for Low): ");
-                String sev = sc.nextLine().trim();
+                    System.out.print("Severity (Critical / Low, press Enter for Low): ");
+                    String sev = sc.nextLine().trim();
 
-                EmergencyCall call = sev.isEmpty()
-                        ? new EmergencyCall(loc)
-                        : new EmergencyCall(loc, sev);
+                    EmergencyCall call = sev.isEmpty()
+                            ? new EmergencyCall(loc)
+                            : new EmergencyCall(loc, sev);
 
-                center.receiveCall(call);
+                    center.receiveCall(call);
+
+                    System.out.print("\nAdd another call right now? (y/n): ");
+                    String again = sc.nextLine().trim();
+                    if (!"y".equalsIgnoreCase(again)) {
+                        break;
+                    }
+                }
+
+                // Wait for ambulances to finish the entered calls
                 center.waitForIdle();
 
             } else if (choice.equals("2")) {
-                runDemo();
+                center.showStatus();
 
             } else if (choice.equals("3")) {
+                runDemo();
+
+            } else if (choice.equals("4")) {
                 System.out.println("Goodbye!");
                 break;
             } else {
-                System.out.println("Please enter 1, 2, or 3.");
+                System.out.println("Please enter 1, 2, 3, or 4.");
             }
         }
         sc.close();
