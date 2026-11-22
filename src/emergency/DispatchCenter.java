@@ -4,10 +4,10 @@ import java.util.ArrayList;
 
 /**
  * Dispatch Center:
- * - Critical: Dispatches ICU (or Basic if ICU busy).
+ * - Critical: Dispatches ICU (or Basic if ICU is busy).
  * - Low: Dispatches ONLY Basic (keeps ICU free for critical emergencies).
- * - No ambulance free: Throws exception and queues the call.
- * - Ambulance returns: Queue is checked, Critical calls served FIRST.
+ * - No ambulance free: Throws exception and adds call to queue.
+ * - When an ambulance returns: Checks queue and serves Critical calls first.
  */
 public class DispatchCenter implements Dispatchable {
     public int totalICU;
@@ -23,44 +23,44 @@ public class DispatchCenter implements Dispatchable {
         this.freeBasic = basicCount;
     }
 
-    // 1. Dispatcher receives an incoming call
+    // 1. Receive a call -> dispatch or add to queue
     public synchronized void receiveCall(EmergencyCall call) {
-        System.out.println("  [CALL]    " + call.id + " | Location: " + call.location + " | Severity: " + call.severity.toUpperCase());
+        System.out.println("\nIncoming Call " + call.id + " | Location: " + call.location + " | Severity: " + call.severity);
         try {
             dispatch(call);
         } catch (NoAmbulanceAvailableException e) {
             queue.add(call);
-            System.out.println("  [BLOCKED] " + e.getMessage());
-            System.out.println("  [QUEUED]  " + call.id + " placed in waiting queue (Queue size: " + queue.size() + ")");
+            System.out.println("  Error: " + e.getMessage());
+            System.out.println("  " + call.id + " added to queue. (Waiting in queue: " + queue.size() + ")");
         }
     }
 
-    // 2. Dispatch logic based on severity
+    // 2. Dispatch check based on severity
     @Override
     public synchronized void dispatch(EmergencyCall call) throws NoAmbulanceAvailableException {
         if ("Critical".equalsIgnoreCase(call.severity)) {
             if (freeICU > 0) {
                 freeICU--;
-                System.out.println("  [ASSIGN]  Dispatched ICU Ambulance for " + call.id);
-                new ICUAmbulance("ICU-Unit", this, call).dispatch(call);
+                System.out.println("  Dispatched: ICU Ambulance for " + call.id);
+                new ICUAmbulance("ICU-Ambulance", this, call).dispatch(call);
                 return;
             } else if (freeBasic > 0) {
                 freeBasic--;
-                System.out.println("  [ASSIGN]  ICU busy -> Dispatched Basic Ambulance for " + call.id);
-                new BasicAmbulance("Basic-Unit", this, call).dispatch(call);
+                System.out.println("  Dispatched: Basic Ambulance for " + call.id + " (ICU was busy)");
+                new BasicAmbulance("Basic-Ambulance", this, call).dispatch(call);
                 return;
             }
         } else {
             // Low severity -> ONLY Basic!
             if (freeBasic > 0) {
                 freeBasic--;
-                System.out.println("  [ASSIGN]  Dispatched Basic Ambulance for " + call.id);
-                new BasicAmbulance("Basic-Unit", this, call).dispatch(call);
+                System.out.println("  Dispatched: Basic Ambulance for " + call.id);
+                new BasicAmbulance("Basic-Ambulance", this, call).dispatch(call);
                 return;
             }
         }
 
-        throw new NoAmbulanceAvailableException("No suitable ambulance free for " + call.id + " [" + call.severity.toUpperCase() + "]");
+        throw new NoAmbulanceAvailableException("No ambulance free for Call " + call.id + " (" + call.severity + ")");
     }
 
     // 3. When an ambulance returns: Critical calls served first!
@@ -68,7 +68,7 @@ public class DispatchCenter implements Dispatchable {
         if (amb instanceof ICUAmbulance) freeICU++;
         else freeBasic++;
 
-        System.out.println("  [BASE]    " + amb.name + " returned. Free -> ICU: " + freeICU + ", Basic: " + freeBasic);
+        System.out.println("  Back at base: " + amb.name + " (Free: " + freeICU + " ICU, " + freeBasic + " Basic)");
 
         // Check queue: Critical first, then Low
         for (String priority : new String[]{"Critical", "Low"}) {
@@ -76,9 +76,9 @@ public class DispatchCenter implements Dispatchable {
                 EmergencyCall c = queue.get(i);
                 if (priority.equalsIgnoreCase(c.severity)) {
                     try {
+                        System.out.println("  Picking waiting " + priority + " Call " + c.id + " from queue:");
                         dispatch(c);
                         queue.remove(i);
-                        System.out.println("  [RESUMED] Queued " + priority.toUpperCase() + " call " + c.id + " dispatched!");
                         return;
                     } catch (NoAmbulanceAvailableException ignored) {}
                 }
@@ -90,7 +90,7 @@ public class DispatchCenter implements Dispatchable {
     public void waitForIdle() {
         while (freeICU < totalICU || freeBasic < totalBasic || !queue.isEmpty()) {
             try {
-                Thread.sleep(100);
+                Thread.sleep(80);
             } catch (InterruptedException ignored) {}
         }
     }
