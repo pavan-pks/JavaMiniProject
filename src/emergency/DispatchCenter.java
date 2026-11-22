@@ -20,8 +20,8 @@ public class DispatchCenter implements Dispatchable {
             dispatch(call);
         } catch (NoAmbulanceAvailableException e) {
             queue.add(call);
-            System.out.println("  → " + e.getMessage());
-            System.out.println("  → " + call.id + " placed in waiting queue.");
+            System.out.println("  -> " + e.getMessage());
+            System.out.println("  -> " + call.id + " placed in waiting queue.");
         }
     }
 
@@ -30,12 +30,12 @@ public class DispatchCenter implements Dispatchable {
         if ("Critical".equalsIgnoreCase(call.severity)) {
             if (freeICU > 0) {
                 freeICU--;
-                System.out.println("  → Sent: ICU Ambulance (Priority 10, ETA: 5m)");
+                System.out.println("  -> Sent: ICU Ambulance (Priority 10, ETA: 5m)");
                 new ICUAmbulance(this, call).dispatch(call);
                 return;
             } else if (freeBasic > 0) {
                 freeBasic--;
-                System.out.println("  → Sent: Basic Ambulance (Priority 10, ETA: 12m) [ICU busy]");
+                System.out.println("  -> Sent: Basic Ambulance (Priority 10, ETA: 12m) [ICU busy]");
                 new BasicAmbulance(this, call).dispatch(call);
                 return;
             }
@@ -43,7 +43,7 @@ public class DispatchCenter implements Dispatchable {
             // Low severity -> ONLY Basic!
             if (freeBasic > 0) {
                 freeBasic--;
-                System.out.println("  → Sent: Basic Ambulance (Priority 5, ETA: 12m)");
+                System.out.println("  -> Sent: Basic Ambulance (Priority 5, ETA: 12m)");
                 new BasicAmbulance(this, call).dispatch(call);
                 return;
             }
@@ -67,7 +67,7 @@ public class DispatchCenter implements Dispatchable {
                     try {
                         dispatch(c);
                         queue.remove(i);
-                        System.out.println("  ✓ Rescued " + prio + " " + c.id + " from queue!");
+                        System.out.println("  [Queue] Rescued " + prio + " " + c.id + " from queue!");
                         return;
                     } catch (NoAmbulanceAvailableException ignored) {}
                 }

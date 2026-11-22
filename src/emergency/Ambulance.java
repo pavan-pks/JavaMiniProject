@@ -26,7 +26,7 @@ public abstract class Ambulance extends Thread implements Dispatchable {
             Thread.sleep(responseTime() * 40); // Simulate travel time
         } catch (InterruptedException ignored) {}
 
-        System.out.println("  ✓ " + name + " reached " + call.location + " (" + call.id + ")");
+        System.out.println("  [Arrived] " + name + " reached " + call.location + " (" + call.id + ")");
 
         if (center != null) {
             center.onReturn(this);
