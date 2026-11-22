@@ -29,17 +29,17 @@ public abstract class Ambulance extends Thread implements Dispatchable {
 
     @Override
     public void run() {
-        System.out.println(">> [" + name + " | Priority: " + getPriority() + "] Dispatched to " +
-                call.id + " (" + call.severity + ") at " + call.location +
-                " | ETA: " + responseTime() + " mins");
+        System.out.println("  [TRANSIT] " + name + " (Thread Priority: " + getPriority() +
+                ") heading to " + call.id + " at " + call.location +
+                " [ETA: " + responseTime() + "m]");
 
         try {
-            Thread.sleep(responseTime() * 100); // Simulate travel time
-        } catch (InterruptedException e) {}
+            Thread.sleep(responseTime() * 70); // Simulated response time
+        } catch (InterruptedException ignored) {}
 
-        System.out.println("<< [" + name + "] Finished Call " + call.id + " at " + call.location + ".");
+        System.out.println("  [ARRIVED] " + name + " completed " + call.id + " at " + call.location + ".");
 
-        // Notify dispatch center that ambulance is back
+        // Alert dispatch center that ambulance is back
         if (center != null) {
             center.onReturn(this);
         }
