@@ -1,5 +1,6 @@
 package emergency;
 
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Main {
@@ -11,53 +12,62 @@ public class Main {
         System.out.println("=========================================");
         System.out.println("     CITY AMBULANCE DISPATCH SYSTEM      ");
         System.out.println("=========================================");
+        System.out.println("Fleet: 1 ICU Ambulance, 1 Basic Ambulance");
 
         while (true) {
-            System.out.println("\n1. Enter Call(s) (Single or Multiple)");
-            System.out.println("2. View Queue & Ambulance Status");
-            System.out.println("3. Run Demo");
-            System.out.println("4. Exit");
-            System.out.print("Choice: ");
+            System.out.println("\n-----------------------------------------");
+            System.out.println("1. Test Call(s)");
+            System.out.println("2. Run Demo (Shows Full Flow)");
+            System.out.println("3. Exit");
+            System.out.print("Choice (1-3): ");
 
             String choice = sc.nextLine().trim();
 
             if (choice.equals("1")) {
-                // Loop to allow adding multiple calls in a row
-                while (true) {
-                    System.out.print("\nLocation: ");
-                    String loc = sc.nextLine().trim();
-                    if (loc.isEmpty()) loc = "Main Street";
+                System.out.print("\nHow many calls do you want to enter? ");
+                int count = 1;
+                try {
+                    count = Integer.parseInt(sc.nextLine().trim());
+                } catch (Exception e) {
+                    count = 1;
+                }
 
-                    System.out.print("Severity (Critical / Low, press Enter for Low): ");
+                // Collect all calls first — no threads interrupting input
+                ArrayList<EmergencyCall> calls = new ArrayList<>();
+                for (int i = 1; i <= count; i++) {
+                    System.out.println("\n--- Call " + i + " of " + count + " ---");
+                    System.out.print("Location: ");
+                    String loc = sc.nextLine().trim();
+                    if (loc.isEmpty()) loc = "Street " + i;
+
+                    System.out.print("Severity (Type 'Critical' or press Enter for 'Low'): ");
                     String sev = sc.nextLine().trim();
 
+                    // Constructor Overloading (Auto ID):
                     EmergencyCall call = sev.isEmpty()
                             ? new EmergencyCall(loc)
                             : new EmergencyCall(loc, sev);
-
-                    center.receiveCall(call);
-
-                    System.out.print("\nAdd another call right now? (y/n): ");
-                    String again = sc.nextLine().trim();
-                    if (!"y".equalsIgnoreCase(again)) {
-                        break;
-                    }
+                    calls.add(call);
                 }
 
-                // Wait for ambulances to finish the entered calls
+                // Process all collected calls
+                System.out.println("\n================ PROCESSING ================");
+                for (EmergencyCall c : calls) {
+                    center.receiveCall(c);
+                }
+
+                // Wait for ambulances to finish before showing menu again
                 center.waitForIdle();
+                System.out.println("\n================ ALL DONE ==================");
 
             } else if (choice.equals("2")) {
-                center.showStatus();
-
-            } else if (choice.equals("3")) {
                 runDemo();
 
-            } else if (choice.equals("4")) {
+            } else if (choice.equals("3")) {
                 System.out.println("Goodbye!");
                 break;
             } else {
-                System.out.println("Please enter 1, 2, 3, or 4.");
+                System.out.println("Please enter 1, 2, or 3.");
             }
         }
         sc.close();
