@@ -1,14 +1,12 @@
 package emergency;
 
-// ICUAmbulance overrides responseTime()
 public class ICUAmbulance extends Ambulance {
-
-    public ICUAmbulance(String name, DispatchCenter center, EmergencyCall call) {
-        super(name, center, call);
+    public ICUAmbulance(DispatchCenter center, EmergencyCall call) {
+        super("ICU Ambulance", center, call);
     }
 
     @Override
     public int responseTime() {
-        return 5; // 5 minutes
+        return 5; // 5 mins
     }
 }
